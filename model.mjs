@@ -51,8 +51,18 @@ export function referenceExperiment(blank=false){
  for(let i=0;i<100;i++)work(lab,'mix','stir',.1);
  for(let i=0;i<80;i++)work(lab,'mortar','cut',.1);
  for(let i=0;i<120;i++)work(lab,'mortar','grind',.1);
- transfer(lab,'mix','mortar',30);for(let i=0;i<200;i++)work(lab,'mortar','stir',.1);
- transfer(lab,'mortar','result',30,{filter:true,speed:1});transfer(lab,'ethanol','cylinder',20);transfer(lab,'cylinder','result',20,{wall:true,speed:1});for(let i=0;i<150;i++)tick(lab,.1);
+ transferSample(lab,'mortar','mix');for(let i=0;i<200;i++)work(lab,'mix','stir',.1);
+ transfer(lab,'mix','result',30,{filter:true,speed:1});transfer(lab,'ethanol','cylinder',20);transfer(lab,'cylinder','result',20,{wall:true,speed:1});for(let i=0;i<150;i++)tick(lab,.1);
  lab.completed=[true,!blank,!blank,true,true,!blank];
- lab.events=['教員用参考結果：操作時間を省略して標準条件をモデルで再現（実測値ではない）','食塩水15 mL＋希釈洗剤15 mLを混合','花蕾30 gを切断・破砕（対照では試料なし）','抽出液30 mLを添加し、穏やかに混合','茶こしで30 mLろ過','冷却99％エタノール20 mLを壁面に沿わせてゆっくり添加','静置して観察'];return lab;
+ lab.events=['教員用参考結果：操作時間を省略して標準条件をモデルで再現（実測値ではない）','食塩水15 mL＋希釈洗剤15 mLを混合','花蕾30 gを切断・破砕（対照では試料なし）','破砕試料を100 mLビーカーへ移し、抽出液と穏やかに混合','茶こしで30 mLろ過','冷却99％エタノール20 mLを壁面に沿わせてゆっくり添加','静置して観察'];return lab;
+}
+
+export function transferSample(lab,from='mortar',to='mix'){
+ if(from===to||!lab.v[from]||!lab.v[to])return false;
+ const a=lab.v[from],b=lab.v[to];if(!a.tissue||volume(a)+volume(b)>capacities[to])return false;
+ const av=volume(a);if(av)transfer(lab,from,to,av);
+ // Liquid transfer already carries some solid proportion; move the remaining sample.
+ b.tissue+=a.tissue;a.tissue=0;b.released+=a.released;a.released=0;
+ b.cut=Math.max(b.cut,a.cut);b.ground=Math.max(b.ground,a.ground);b.shear=Math.max(b.shear,a.shear);b.filtered=false;
+ return true;
 }
